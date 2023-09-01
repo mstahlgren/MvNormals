@@ -33,23 +33,23 @@ sigma(x::MvNormal) = x.Σ
 
 sigma(x::IsoMvNormal) = 1.0I(x |> size)
 
-Base.:+(d₁::MvNormal, d₂::MvNormal) = MvNormal(mu(d₁) .+ mu(d₂), sigma(d₁) .+ sigma(d₂))
+Base.:+(d₁::MvNormal, d₂::MvNormal) = DenseMvNormal(mu(d₁) .+ mu(d₂), sigma(d₁) .+ sigma(d₂))
 
-Base.:+(d₁::ZeroMeanMvNormal, d₂::MvNormal) = MvNormal(mu(d₂), sigma(d₁) .+ sigma(d₂))
+Base.:+(d₁::ZeroMeanMvNormal, d₂::MvNormal) = DenseMvNormal(mu(d₂), sigma(d₁) .+ sigma(d₂))
 
 Base.:+(d₁::MvNormal, d₂::ZeroMeanMvNormal) = d₂ + d₁ 
 
-Base.:+(d₁::ZeroMeanMvNormal, d₂::ZeroMeanMvNormal) = ZeroMeanMvNormal(sigma(d₁) .+ sigma(d₂))
+Base.:+(d₁::ZeroMeanMvNormal, d₂::ZeroMeanMvNormal) = DenseZeroMeanMvNormal(sigma(d₁) .+ sigma(d₂))
 
-Base.:+(v::Vector, d::MvNormal) = MvNormal(v .+ mu(d), sigma(d))
+Base.:+(v::Vector, d::MvNormal) = DenseMvNormal(v .+ mu(d), sigma(d))
 
-Base.:+(v::Vector, d::ZeroMeanMvNormal) = MvNormal(v, sigma(d))
+Base.:+(v::Vector, d::ZeroMeanMvNormal) = DenseMvNormal(v, sigma(d))
 
-Base.:*(m::Matrix, d::MvNormal) = MvNormal(m*mu(d), m*sigma(d)*m')
+Base.:*(m::Matrix, d::MvNormal) = DenseMvNormal(m*mu(d), m*sigma(d)*m')
 
-Base.:*(m::Matrix, d::ZeroMeanMvNormal) = ZeroMeanMvNormal(m*sigma(d)*m')
+Base.:*(m::Matrix, d::ZeroMeanMvNormal) = DenseZeroMeanMvNormal(m*sigma(d)*m')
 
-Base.:*(m::Matrix, ::IsoMvNormal) = ZeroMeanMvNormal(m*m')
+Base.:*(m::Matrix, ::IsoMvNormal) = DenseZeroMeanMvNormal(m*m')
 
 Base.:(==)(x::MvNormal, y::MvNormal) = (mu(x) == mu(y)) && (sigma(x) == sigma(y))
 

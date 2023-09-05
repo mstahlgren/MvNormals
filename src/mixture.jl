@@ -7,7 +7,7 @@ struct Mixture{D} <: Distribution
     dists::Vector{D}
 end
 
-Base.:+(m::Mixture{D}, d::D) where {D <: MvNormal} = Mixture([dᵢ + d for dᵢ in m.dists])
+Base.:+(m::Mixture{D₁}, d::D₂) where {D₁ <: MvNormal, D₂ <: MvNormal} = Mixture([dᵢ + d for dᵢ in m.dists])
 
 Base.:*(mat::Matrix, m::Mixture{D}) where {D <: MvNormal} = Mixture([mat * d for d in m.dists])
 

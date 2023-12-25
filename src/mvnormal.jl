@@ -69,6 +69,6 @@ function logpdf(x::MvNormal, o::Vector)
     return -0.5*(ld + le'le)
 end
 
-logpdf(x::IsoMvNormal, o::Vector) = -0.5*(log(2π)*size(x) + o'o)
+logpdf(x::IsoMvNormal, o::AbstractVector) = -0.5*(log(2π)*size(x) + o'o)
 
 StatsBase.:sample(x::IsoMvNormal, n::Int64) = [randn(size(x)) for _ in 1:n]

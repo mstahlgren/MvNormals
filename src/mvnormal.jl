@@ -19,7 +19,9 @@ end
 struct DenseMvNormal <: MvNormal
     μ::Vector
     Σ::Matrix
- end
+end
+
+DenseMvNormal(x::IsoMvNormal) = DenseMvNormal(x |> mu, x |> sigma)
 
 Base.:size(x::MvNormal) = size(sigma(x), 1)
 

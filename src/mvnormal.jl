@@ -62,7 +62,7 @@ function Base.:&(d₁::MvNormal, d₂::MvNormal)
     return DenseMvNormal(Σ₂'*μ₁ .+ Σ₁'*μ₂, Σ₁'*Σ₂)
 end
 
-function logpdf(x::MvNormal, o::Vector)
+function logpdf(x::MvNormal, o::AbstractVector)
     C = x |> sigma |> Hermitian |> cholesky
     ld = log(2π)*length(o) + 2*logdet(C.U)
     le = C\(o-x.μ)

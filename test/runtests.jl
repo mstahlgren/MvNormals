@@ -1,4 +1,4 @@
-using ComposableDistributions
+using MvNormals
 using LinearAlgebra
 using Test
 

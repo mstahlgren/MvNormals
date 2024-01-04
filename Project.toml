@@ -1,4 +1,4 @@
-name = "ComposableDistributions"
+name = "MvNormals"
 uuid = "6948db4f-7a78-45c0-821d-d9cc157bd434"
 authors = ["Martin Ståhlgren <martin.stahlgren@gmail.com> and contributors"]
 version = "0.1.0"

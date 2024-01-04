@@ -72,3 +72,7 @@ end
 logpdf(x::IsoMvNormal, o::AbstractVector) = -0.5*(log(2π)*size(x) + o'o)
 
 Base.:rand(x::IsoMvNormal, n::Int64) = [randn(size(x)) for _ in 1:n]
+
+#@btime logpdf(mvn, zeros(10))
+#  1.333 μs (19 allocations: 1.61 KiB)
+#-9.189385332046726

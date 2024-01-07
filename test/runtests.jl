@@ -3,12 +3,12 @@ using LinearAlgebra
 using Test
 
 n = 2
-Z = n |> zeros
-I₂ = Matrix(1.0I(n))
 
-mvn = DenseMvNormal(Z, I₂)
-imvn = IsoMvNormal(n)
+mvn₀ = MvNormal(n)
+mvn₁ = MvNormal(ones(n), Diagonal(ones(n)))
+mvn₂ = MvNormal(ones(n), Matrix(2.0I(n)))
 
 @testset "MvNormal" begin
-    @test Z + I₂*(imvn + imvn) == mvn + mvn
+    @test mvn₀ + mvn₁ == mvn₂
+    @test ones(n) + Matrix(1.0I(n)) * mvn₀ == mvn₁
 end

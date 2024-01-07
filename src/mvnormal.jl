@@ -35,7 +35,7 @@ function Base.:&(d₁::MvNormal, d₂::MvNormal)
     L⁻¹ = inv(c.L)
     Σ₁, Σ₂ = L⁻¹ * Σ(d₁), L⁻¹ * Σ(d₂)
     μ₁, μ₂ = L⁻¹ * μ(d₁), L⁻¹ * μ(d₂)
-    return MvNormal(size(d₁), Σ₂'μ₁ .+ Σ₁'μ₂, Σ₁'Σ₂)
+    return MvNormal(size(d₁), Σ₂'μ₁ + Σ₁'μ₂, Σ₁'Σ₂)
 end
 
 function logpdf(x::MvNormal, o::AbstractVector)

@@ -11,4 +11,6 @@ mvn₂ = MvNormal(ones(n), Matrix(2.0I(n)))
 @testset "MvNormal" begin
     @test mvn₀ + mvn₁ == mvn₂
     @test ones(n) + Matrix(1.0I(n)) * mvn₀ == mvn₁
+    @test mvn₂ & mvn₂ == mvn₁
+    @test μ(mvn₁ & mvn₀) == Zero()
 end

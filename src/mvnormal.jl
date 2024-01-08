@@ -28,7 +28,7 @@ Base.:+(v::AbstractVector, d::MvNormal) = MvNormal(size(d), v + μ(d), Σ(d))
 
 Base.:*(m::AbstractMatrix, d::MvNormal) = MvNormal(size(d), m * μ(d), m * Σ(d) * m')
 
-Base.:(==)(d₁::MvNormal, d₂::MvNormal) = (μ(d₁) == μ(d₂)) && (Σ(d₁) == Σ(d₂))
+Base.:(≈)(d₁::MvNormal, d₂::MvNormal) = (μ(d₁) ≈ μ(d₂)) && (Σ(d₁) ≈ Σ(d₂))
 
 function Base.:&(d₁::MvNormal, d₂::MvNormal)
     c = cholesky(Σ(d₁) + Σ(d₂))

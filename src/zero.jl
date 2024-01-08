@@ -1,9 +1,11 @@
 struct Zero end
 
-Base.:+(::Zero, x₂) = x₂
+Base.:+(::Zero, x) = x
 
-Base.:+(x₁, ::Zero) = x₁
+Base.:+(x, ::Zero) = x
 
-Base.:*(::Zero, x₂) = Zero()
+Base.:*(::Zero, x) = Zero()
 
-Base.:*(x₁, ::Zero) = Zero()
+Base.:*(x, ::Zero) = Zero()
+
+Base.:\(x, ::Zero) = Zero()

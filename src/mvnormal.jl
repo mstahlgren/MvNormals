@@ -1,4 +1,6 @@
-using LinearAlgebra: I, UniformScaling, cholesky, logdet
+using LinearAlgebra: I, UniformScaling, cholesky, logdet, Diagonal
+
+import Zygote: @adjoint, nothing
 
 export MvNormal, IsoMvNormal, μ, Σ, logpdf
 
@@ -38,11 +40,20 @@ function Base.:&(d₁::MvNormal, d₂::MvNormal)
     return MvNormal(size(d₁), Σ₂'μ₁ + Σ₁'μ₂, Σ₁'Σ₂)
 end
 
-function logpdf(x::MvNormal, o::AbstractVector)
-    c = cholesky(Σ(x))
-    ld = log(2π)*length(o) + 2*logdet(c.U)
-    le = c.U\(o - x.μ)
+function logpdf(d::MvNormal, x::AbstractVector)
+    c = d |> Σ |> cholesky
+    ld = log(2π)*length(x) + 2*logdet(c.U)
+    le = c.U\(x - d.μ)
     return -0.5*(ld + le'le)
+end
+
+@adjoint logpdf(d::MvNormal, x::AbstractVector, rr) = begin
+    c = d |> Σ |> cholesky
+    z = x - μ(d)
+    cz = c\z
+    ld = log(2π)*length(x) + 2*logdet(c.U)
+    A = inv(c) .- cz .* cz'
+    -0.5*(ld + z'cz), s -> ((n = nothing, μ = s * cz, Σ = -0.5 .* s .* (2A .- Diagonal(A))), -s * cz)
 end
 
 function logpdf(::IsoMvNormal, o::AbstractVector)

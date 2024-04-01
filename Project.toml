@@ -1,11 +1,12 @@
 name = "MvNormals"
 uuid = "6948db4f-7a78-45c0-821d-d9cc157bd434"
 authors = ["Martin Ståhlgren <martin.stahlgren@gmail.com> and contributors"]
-version = "0.2.1"
+version = "0.3.0"
 
 [deps]
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [compat]
 julia = "1"

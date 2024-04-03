@@ -42,24 +42,28 @@ end
 
 function logpdf(d::MvNormal, x::AbstractVector)
     c = d |> Σ |> cholesky
-    ld = log(2π)*length(x) + 2*logdet(c.U)
+    ld = log(2π)*size(d) + 2*logdet(c.U)
     le = c.U\(x - d.μ)
     return -0.5*(ld + le'le)
 end
 
-@adjoint logpdf(d::MvNormal, x::AbstractVector) = begin
-    print("custom adjoint")
+@adjoint logpdf(d::MvNormal, x::AbstractVector, r, h) = begin
+    println("generic MvNormal custom adjoint")
     c = d |> Σ |> cholesky
     z = x - μ(d)
     cz = c\z
-    ld = log(2π)*length(x) + 2*logdet(c.U)
+    ld = log(2π)*size(d) + 2*logdet(c.U)
     A = inv(c) .- cz .* cz'
     -0.5*(ld + z'cz), s -> ((n = nothing, μ = s * cz, Σ = -0.5 .* s .* (2A .- Diagonal(A))), -s * cz)
 end
 
-function logpdf(::IsoMvNormal, o::AbstractVector)
-    ld = log(2π)*length(o)
-    return -0.5*(ld + o'o)
+function logpdf(d::IsoMvNormal, x::AbstractVector)
+    return -0.5*(log(2π)*size(d) + x'x)
+end
+
+@adjoint logpdf(d::IsoMvNormal, x::AbstractVector, rr) = begin
+    println("IsoMvNormal custom adjoint")
+    logpdf(d, x), s -> (nothing, -s * x)
 end
 
 Base.:rand(x::MvNormal, n::Int64) = [μ(x) + cholesky(Σ(x)).L * randn(size(x)) for _ in 1:n]

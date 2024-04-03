@@ -47,7 +47,8 @@ function logpdf(d::MvNormal, x::AbstractVector)
     return -0.5*(ld + le'le)
 end
 
-@adjoint logpdf(d::MvNormal, x::AbstractVector, rr) = begin
+@adjoint logpdf(d::MvNormal, x::AbstractVector) = begin
+    print("custom adjoint")
     c = d |> Σ |> cholesky
     z = x - μ(d)
     cz = c\z

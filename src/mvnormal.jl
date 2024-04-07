@@ -52,7 +52,7 @@ function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal, x::AbstractVector)
     cz = c\z
     ld = log(2π)*size(d) + 2*logdet(c.U)
     A = inv(c) .- cz .* cz'
-    mvn_dll = s -> (NoTangent(), Tangent{MvNormal}(μ = s * cz, Σ = -0.5 .* s .* (2A .- Diagonal(A))), -s * cz)
+    mvn_dll = s -> (NoTangent(), Tangent{MvNormal}(μ = s .* cz, Σ = -0.5 .* s .* (2A .- Diagonal(A))), -s .* cz)
     return -0.5*(ld + z'cz), mvn_dll
 end
 
@@ -61,7 +61,7 @@ function logpdf(d::IsoMvNormal, x::AbstractVector)
 end
 
 function ChainRulesCore.rrule(::typeof(logpdf), d::IsoMvNormal, x::AbstractVector)
-    isomvn_dll = s -> (NoTangent(), ZeroTangent(), -s * x)
+    isomvn_dll = s -> (NoTangent(), ZeroTangent(), -s .* x)
     return logpdf(d, x), isomvn_dll
 end
 

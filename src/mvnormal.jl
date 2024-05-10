@@ -1,5 +1,5 @@
 using LinearAlgebra: I, UniformScaling, cholesky, logdet, Diagonal
-import ChainRulesCore: ChainRulesCore, Tangent, NoTangent, ZeroTangent
+import ChainRulesCore: ChainRulesCore, Tangent, NoTangent, ZeroTangent, ProjectTo
 
 export MvNormal, IsoMvNormal, μ, Σ, logpdf
 
@@ -52,7 +52,7 @@ function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal, x::AbstractVector)
     cz = c\z
     ld = log(2π)*size(d) + 2*logdet(c.U)
     A = inv(c) .- cz .* cz'
-    mvn_dll(s) = (NoTangent(), Tangent{MvNormal}(μ = s .* cz, Σ = -0.5 .* s .* (2A .- Diagonal(A))), -s .* cz)
+    mvn_dll(s) = (NoTangent(), Tangent{MvNormal}(μ = s .* cz, Σ = ProjectTo(d.Σ)(-0.5 .* s .* (2A .- Diagonal(A)))), -s .* cz)
     return -0.5*(ld + z'cz), mvn_dll
 end
 

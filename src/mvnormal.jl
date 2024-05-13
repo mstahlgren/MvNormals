@@ -1,5 +1,5 @@
 using LinearAlgebra: I, UniformScaling, cholesky, logdet, Diagonal
-import ChainRulesCore: ChainRulesCore, Tangent, NoTangent, ZeroTangent, ProjectTo
+import ChainRulesCore: ChainRulesCore, Tangent, NoTangent, ZeroTangent, ProjectTo, rrule
 
 export MvNormal, IsoMvNormal, μ, Σ, logpdf
 
@@ -39,14 +39,30 @@ function Base.:&(d₁::MvNormal, d₂::MvNormal)
     return MvNormal(size(d₁), Σ₂'μ₁ + Σ₁'μ₂, Σ₁'Σ₂)
 end
 
-function logpdf(d::MvNormal, x::AbstractVector)
+function logpdfnan(d::MvNormal{T,S}, x::AbstractVector) where {T,S}
+    nums = .!isnan.(x)
+    if !any(nums) return 0.0 end
+    if all(nums) return logpdf(d, x) end
+    if S <: Diagonal return logpdf(MvNormal(μ(d)[nums], Diagonal(Σ(d).diag[nums])), x[nums]) end
+    return logpdf(MvNormal(μ(d)[nums], Σ(d)[nums, nums]), x[nums])
+end
+
+function ChainRulesCore.rrule(::typeof(logpdfnan), d::MvNormal{T,S}, x::AbstractVector) where {T,S} 
+    nums = .!isnan.(x)
+    if !any(nums) return 0.0, Δy -> NoTangent(), ZeroTangent(), ZeroTangent() end
+    if all(nums) return rrule(logpdf, d, x) end
+    if S <: Diagonal return rrule(logpdf, MvNormal(μ(d)[nums], Diagonal(Σ(d).diag[nums])), x[nums]) end
+    return rrule(logpdf, MvNormal(μ(d)[nums], Σ(d)[nums, nums]), x[nums])
+end
+
+function logpdf(d::MvNormal{T,S}, x::AbstractVector) where {T,S}
     c = d |> Σ |> cholesky
     ld = log(2π)*size(d) + 2*logdet(c.U)
-    le = c.U\(x - d.μ)
+    le = c.U\(x .- d.μ)
     return -0.5*(ld + le'le)
 end
 
-function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal, x::AbstractVector)
+function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x::AbstractVector) where {T,S}
     c = d |> Σ |> cholesky
     z = x - μ(d)
     cz = c\z

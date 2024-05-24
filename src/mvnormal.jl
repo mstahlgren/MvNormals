@@ -1,7 +1,7 @@
 using LinearAlgebra: I, UniformScaling, cholesky, logdet, Diagonal
-import ChainRulesCore: ChainRulesCore, Tangent, NoTangent, ZeroTangent, ProjectTo, rrule
+import ChainRulesCore: ChainRulesCore, Tangent, NoTangent, ZeroTangent, ProjectTo, rrule, @thunk
 
-export MvNormal, IsoMvNormal, μ, Σ, logpdf
+export MvNormal, IsoMvNormal, μ, Σ, logpdf, logpdfnan
 
 # TODO: Make compatible with Distributions package
 
@@ -39,21 +39,7 @@ function Base.:&(d₁::MvNormal, d₂::MvNormal)
     return MvNormal(size(d₁), Σ₂'μ₁ + Σ₁'μ₂, Σ₁'Σ₂)
 end
 
-function logpdfnan(d::MvNormal{T,S}, x::AbstractVector) where {T,S}
-    nums = .!isnan.(x)
-    if !any(nums) return 0.0 end
-    if all(nums) return logpdf(d, x) end
-    if S <: Diagonal return logpdf(MvNormal(μ(d)[nums], Diagonal(Σ(d).diag[nums])), x[nums]) end
-    return logpdf(MvNormal(μ(d)[nums], Σ(d)[nums, nums]), x[nums])
-end
-
-function ChainRulesCore.rrule(::typeof(logpdfnan), d::MvNormal{T,S}, x::AbstractVector) where {T,S} 
-    nums = .!isnan.(x)
-    if !any(nums) return 0.0, Δy -> NoTangent(), ZeroTangent(), ZeroTangent() end
-    if all(nums) return rrule(logpdf, d, x) end
-    if S <: Diagonal return rrule(logpdf, MvNormal(μ(d)[nums], Diagonal(Σ(d).diag[nums])), x[nums]) end
-    return rrule(logpdf, MvNormal(μ(d)[nums], Σ(d)[nums, nums]), x[nums])
-end
+# Logpdf
 
 function logpdf(d::MvNormal{T,S}, x::AbstractVector) where {T,S}
     c = d |> Σ |> cholesky
@@ -67,9 +53,14 @@ function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x::AbstractVec
     z = x - μ(d)
     cz = c\z
     ld = log(2π)*size(d) + 2*logdet(c.U)
-    A = inv(c) .- cz .* cz'
-    mvn_dll(s) = (NoTangent(), Tangent{MvNormal}(μ = s .* cz, Σ = ProjectTo(d.Σ)(-0.5 .* s .* (2A .- Diagonal(A)))), -s .* cz)
-    return -0.5*(ld + z'cz), mvn_dll
+    logpdf_pb(Δy) = begin
+        Σₜ = @thunk begin
+            A = inv(c) .- cz .* cz'
+            ProjectTo(d.Σ)(-0.5 .* Δy .* (2A .- Diagonal(A)))
+        end
+        (NoTangent(), Tangent{MvNormal}(μ = Δy .* cz, Σ = Σₜ), -Δy .* cz)
+    end
+    return -0.5*(ld + z'cz), logpdf_pb
 end
 
 function logpdf(d::IsoMvNormal, x::AbstractVector)
@@ -80,6 +71,33 @@ function ChainRulesCore.rrule(::typeof(logpdf), d::IsoMvNormal, x::AbstractVecto
     isomvn_dll(s) =  (NoTangent(), ZeroTangent(), -s .* x)
     return logpdf(d, x), isomvn_dll
 end
+
+# Logpdfnan
+
+function logpdfnan(d::MvNormal{T,S}, x::AbstractVector) where {T,S}
+    nums = .!isnan.(x)
+    if !any(nums) return 0.0 end
+    if all(nums) return logpdf(d, x) end
+    if S <: Diagonal return logpdf(MvNormal(μ(d)[nums], Diagonal(Σ(d).diag[nums])), x[nums]) end
+    return logpdf(MvNormal(μ(d)[nums], Σ(d)[nums, nums]), x[nums])
+end
+
+function ChainRulesCore.rrule(::typeof(logpdfnan), d::MvNormal{T,S}, x::AbstractVector, a) where {T,S} 
+    nums = .!isnan.(x)
+    if !any(nums) return 0.0, Δy -> NoTangent(), ZeroTangent(), ZeroTangent() end
+    if all(nums) return rrule(logpdf, d, x) end
+    y, y_pb = rrule(logpdf, MvNormal(μ(d)[nums], S <: Diagonal ? Diagonal(Σ(d).diag[nums]) : Σ(d)[nums, nums]), x[nums])
+    logpdfnan_pb(Δy) = begin
+        _, Δd, Δx = y_pb(Δy)
+        μ₁ = @thunk begin μ₀ = zeros(size(μ(d))); view(μ₀,nums) .= Δd.μ; μ₀ end
+        Σ₁ = @thunk begin Σ₀ = zeros(size(Σ(d))); view(Σ₀,nums,nums) .= Δd.Σ; ProjectTo(Σ(d))(Σ₀) end
+        x₁ = @thunk begin x₀ = zeros(size(x)); view(x₀,nums) .= Δx; x₀ end
+        (NoTangent(), Tangent{MvNormal}(μ = μ₁, Σ = Σ₁), x₁)
+    end
+    return y, logpdfnan_pb
+end
+
+# Rand
 
 Base.:rand(x::MvNormal, n::Int64) = [μ(x) + cholesky(Σ(x)).L * randn(size(x)) for _ in 1:n]
 

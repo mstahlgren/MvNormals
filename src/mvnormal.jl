@@ -81,8 +81,7 @@ function logpdfnan(d::MvNormal{T,S}, x::AbstractVector, nums = .!isnan.(x)) wher
     return logpdf(MvNormal(μ(d)[nums], Σ(d)[nums, nums]), x[nums])
 end
 
-function ChainRulesCore.rrule(::typeof(logpdfnan), d::MvNormal{T,S}, x::AbstractVector) where {T,S} 
-    nums = .!isnan.(x)
+function ChainRulesCore.rrule(::typeof(logpdfnan), d::MvNormal{T,S}, x::AbstractVector, nums = .!isnan.(x)) where {T,S} 
     if !any(nums) return 0.0, Δy -> NoTangent(), ZeroTangent(), ZeroTangent() end
     if all(nums) return rrule(logpdf, d, x) end
     y, y_pb = rrule(logpdf, MvNormal(μ(d)[nums], S <: Diagonal ? Diagonal(Σ(d).diag[nums]) : Σ(d)[nums, nums]), x[nums])

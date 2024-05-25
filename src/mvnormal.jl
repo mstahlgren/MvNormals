@@ -74,8 +74,7 @@ end
 
 # Logpdfnan
 
-function logpdfnan(d::MvNormal{T,S}, x::AbstractVector) where {T,S}
-    nums = .!isnan.(x)
+function logpdfnan(d::MvNormal{T,S}, x::AbstractVector, nums = .!isnan.(x)) where {T,S}
     if !any(nums) return 0.0 end
     if all(nums) return logpdf(d, x) end
     if S <: Diagonal return logpdf(MvNormal(μ(d)[nums], Diagonal(Σ(d).diag[nums])), x[nums]) end

@@ -1,4 +1,4 @@
-using LinearAlgebra: I, UniformScaling, cholesky, logdet, Diagonal
+using LinearAlgebra: I, UniformScaling, cholesky, logdet, Diagonal, Hermitian
 import ChainRulesCore: ChainRulesCore, Tangent, NoTangent, ZeroTangent, ProjectTo, rrule, @thunk
 
 export MvNormal, IsoMvNormal, μ, Σ, logpdf, logpdfnan
@@ -97,6 +97,6 @@ end
 
 # Rand
 
-Base.:rand(x::MvNormal, n::Int64) = [μ(x) + cholesky(Σ(x)).L * randn(size(x)) for _ in 1:n]
+Base.:rand(x::MvNormal, n::Int64) = [μ(x) + cholesky(Hermitian(Σ(x))).L * randn(size(x)) for _ in 1:n]
 
 Base.:rand(x::IsoMvNormal, n::Int64) = [randn(size(x)) for _ in 1:n]

@@ -41,14 +41,14 @@ end
 
 # Logpdf
 
-function logpdf(d::MvNormal{T,S}, x::AbstractVector) where {T,S}
+function logpdf(d::MvNormal{T,S}, x) where {T,S}
     c = d |> Σ |> cholesky
     ld = log(2π)*size(d) + 2*logdet(c.U)
     le = c.U\(x .- d.μ)
     return -0.5*(ld + le'le)
 end
 
-function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x::AbstractVector) where {T,S}
+function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x) where {T,S}
     c = d |> Σ |> cholesky
     z = x - μ(d)
     cz = c\z
@@ -63,11 +63,11 @@ function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x::AbstractVec
     return -0.5*(ld + z'cz), logpdf_pb
 end
 
-function logpdf(d::IsoMvNormal, x::AbstractVector)
+function logpdf(d::IsoMvNormal, x)
     return -0.5*(log(2π)*size(d) + x'x)
 end
 
-function ChainRulesCore.rrule(::typeof(logpdf), d::IsoMvNormal, x::AbstractVector)
+function ChainRulesCore.rrule(::typeof(logpdf), d::IsoMvNormal, x)
     isomvn_dll(s) =  (NoTangent(), ZeroTangent(), -s .* x)
     return logpdf(d, x), isomvn_dll
 end

@@ -1,4 +1,4 @@
-struct Zero end
+struct Zero <: AbstractVector{Float64} end
 
 Base.:+(::Zero, x) = x
 

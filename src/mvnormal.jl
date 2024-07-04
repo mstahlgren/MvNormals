@@ -69,7 +69,7 @@ function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x::AbstractVec
     ld = log(2π)*length(d) + 2*logdet(d.U)
     logpdf_pb(Δy) = begin
         Σₜ = @thunk ProjectTo(d.U)(Δy .* (L⁻¹z * Σ⁻¹z' .- inv(Diagonal(d.U))))
-        (NoTangent(), Tangent{MvNormal}(n = ZeroTangent(), μ = Δy .* Σ⁻¹z, U = Σₜ), -Δy .* Σ⁻¹z)
+        (NoTangent(), Tangent{MvNormal}(n = NoTangent(), μ = Δy .* Σ⁻¹z, U = Σₜ), -Δy .* Σ⁻¹z)
     end
     return -0.5*(ld + AᵀA(L⁻¹z)), logpdf_pb
 end

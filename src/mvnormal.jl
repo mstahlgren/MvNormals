@@ -61,15 +61,15 @@ function Distributions.logpdf(d::MvNormal{T,S}, x::AbstractVector) where {T,S}
     return -0.5*(ld + le'le)
 end
 
-function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x::AbstractVector) where {T,S}
+function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x::AbstractVector, a) where {T,S}
     z = x .- d.μ
     C = Cholesky(d.U, :U, 0)
     L⁻¹z = d.U'\z
     Σ⁻¹z = C\z
     ld = log(2π)*length(d) + 2*logdet(d.U)
     logpdf_pb(Δy) = begin
-        Σₜ = @thunk ProjectTo(d.U)(Δy .* (L⁻¹z * Σ⁻¹z' .- inv(Diagonal(d.U))))
-        (NoTangent(), Tangent{MvNormal}(n = NoTangent(), μ = Δy .* Σ⁻¹z, U = Σₜ), -Δy .* Σ⁻¹z)
+        Uₜ = @thunk ProjectTo(d.U)(Δy .* (L⁻¹z * Σ⁻¹z' .- inv(Diagonal(d.U))))
+        (NoTangent(), Tangent{MvNormal}(n = NoTangent(), μ = Δy .* Σ⁻¹z, U = Uₜ), -Δy .* Σ⁻¹z)
     end
     return -0.5*(ld + AᵀA(L⁻¹z)), logpdf_pb
 end

@@ -61,7 +61,7 @@ function Distributions.logpdf(d::MvNormal{T,S}, x::AbstractVector) where {T,S}
     return -0.5*(ld + le'le)
 end
 
-function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x::AbstractVector, a) where {T,S}
+function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T,S}, x::AbstractVector) where {T,S}
     z = x .- d.μ
     C = Cholesky(d.U, :U, 0)
     L⁻¹z = d.U'\z

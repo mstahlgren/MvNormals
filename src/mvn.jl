@@ -180,8 +180,8 @@ function ChainRulesCore.rrule(::typeof(logpdfnan), d::MvNormal{T,N,M,S,U}, x, nu
         else @thunk begin U₀ = zeros(size(d.C)); view(U₀,nums,nums) .= Δd.C; U(U₀) end end
         Σ₁ = if S <: Nothing NoTangent()
         elseif S <: Diagonal @thunk begin Σ₀ = zeros(length(d)); view(Σ₀,nums) .= Δd.Σ.diag; S(Σ₀) end
-        else @thunk begin Σ₀ = zeros(size(d.Σ)); view(Σ₀,nums,nums) .= Δd.Σ; end
-        x₁ = @thunk begin x₀ = zeros(length(d)); view(x₀,nums) .= Δx; x₀ end end
+        else @thunk begin Σ₀ = zeros(size(d.Σ)); view(Σ₀,nums,nums) .= Δd.Σ; end end
+        x₁ = @thunk begin x₀ = zeros(length(d)); view(x₀,nums) .= Δx; x₀ end
         (NoTangent(), Tangent{MvNormal}(μ = μ₁, Σ = Σ₁, U = U₁), x₁)
     end
     return y, logpdfnan_pb

@@ -160,8 +160,8 @@ function logpdfnan(d::MvNormal{T,N,M,S,U}, x, nums = .!isnan.(x)) where {T,N,M,S
     if !any(nums) return T(0) end
     if all(nums) return logpdf(d, x) end
     μ = !isnothing(d.μ) ? d.μ[nums] : nothing
-    C = if !isnothing(d.C) U <: Diagonal ? d.C.diag[nums] : d.C[nums,nums] else nothing end
-    Σ = if !isnothing(d.Σ) S <: Diagonal ? d.Σ.diag[nums] : d.Σ[nums,nums] else nothing end
+    C = if !isnothing(d.C) U(U <: Diagonal ? d.C.diag[nums] : d.C[nums,nums]) else nothing end
+    Σ = if !isnothing(d.Σ) S <: Diagonal ? S(d.Σ.diag[nums]) : d.Σ[nums,nums] else nothing end
     return logpdf(MvNormal(T, sum(nums), μ, Σ, C), x[nums])
 end
 
@@ -169,7 +169,7 @@ function ChainRulesCore.rrule(::typeof(logpdfnan), d::MvNormal{T,N,M,S,U}, x, nu
     if !any(nums) return T(0), Δy -> NoTangent(), ZeroTangent(), ZeroTangent() end
     if all(nums) return rrule(logpdf, d, x) end
     μ = !isnothing(d.μ) ? d.μ[nums] : nothing
-    C = if !isnothing(d.C) U <: Diagonal ? U(d.C.diag[nums]) : d.C[nums,nums] else nothing end
+    C = if !isnothing(d.C) U(U <: Diagonal ? d.C.diag[nums] : d.C[nums,nums]) else nothing end
     Σ = if !isnothing(d.Σ) S <: Diagonal ? S(d.Σ.diag[nums]) : d.Σ[nums,nums] else nothing end
     y, y_pb = rrule(logpdf, MvNormal(T, sum(nums), μ, Σ, C), x[nums])
     logpdfnan_pb(Δy) = begin

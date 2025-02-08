@@ -1,6 +1,6 @@
 module MvNormals
 
-import StaticArrays: SVector, SMatrix
+import StaticArrays: SVector
 import ChainRulesCore: ChainRulesCore, ZeroTangent, NoTangent, Tangent, ProjectTo, rrule, @thunk
 import LinearAlgebra: Cholesky, LowerTriangular, Diagonal, cholesky, logdet, inv, diag
 

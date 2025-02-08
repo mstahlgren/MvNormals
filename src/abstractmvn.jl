@@ -27,23 +27,3 @@ function logpdf(d::AbstractMvNormal, x)
     z, s, c = x - d.μ, log(2π)*length(d), Cholesky(σ(d), :L, 0)
     return -0.5*(s + logdet(c) + AᵀA(c.L \ z))
 end
-
-function logpdfnan(d::AbstractMvNormal, x, nums)
-    if !any(nums) return eltype(d)(0) end
-    if all(nums) return logpdf(d, x) end
-    return logpdf(d[nums], x[nums])
-end
-
-function ChainRulesCore.rrule(::typeof(logpdfnan), d::AbstractMvNormal, x, nums)
-    if !any(nums) return eltype(d)(0), Δy -> NoTangent(), ZeroTangent(), ZeroTangent() end
-    if all(nums) return rrule(logpdf, d, x) end
-    y, y_pb = rrule(logpdf, d[nums], x[nums])
-    logpdfnan_pb(Δy) = begin
-        _, Δd, Δx = y_pb(Δy)
-        x₁ = @thunk begin x₀ = zeros(eltype(d), d |> length); view(x₀, nums) .= Δx; x₀ end
-        μ₁ = @thunk begin μ₀ = zeros(eltype(d), d |> length); view(μ₀, nums) .= Δd.μ; μ₀ end
-        σ₁ = @thunk begin σ₀ = zeros(eltype(d), d.σ |> size); view(σ₀, nums, nums) .= Δd.σ; U₀ end
-        (NoTangent(), Tangent{typeof(d)}(μ = μ₁, σ = σ₁), x₁)
-    end
-    return y, logpdfnan_pb
-end

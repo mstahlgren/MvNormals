@@ -10,6 +10,8 @@ Base.eltype(::AbstractMvNormal{T}) where T = T
 
 Base.length(d::AbstractMvNormal) = d |> μ |> length
 
+Base.:+(x::AbstractVec, d::T) where T <: AbstractMvNormal = T(x + μ(d), σ(d))
+
 function Base.rand(d::AbstractMvNormal)
     N, T = length(d), eltype(d)
     x = isbits(μ(d)) ? randn(SVector{N, T}) : randn(T, N)
@@ -24,6 +26,6 @@ function Base.:&(d₁::AbstractMvNormal, d₂::AbstractMvNormal)
 end
 
 function logpdf(d::AbstractMvNormal, x)
-    z, s, c = x - d.μ, log(2π)*length(d), Cholesky(σ(d), :L, 0)
-    return -0.5*(s + logdet(c) + AᵀA(c.L \ z))
+    s, c = log(2π)*length(d), Cholesky(σ(d), :L, 0)
+    return -0.5*(s + logdet(c) + AᵀA(c.L \ (x - d.μ)))
 end

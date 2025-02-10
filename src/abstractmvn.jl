@@ -10,7 +10,7 @@ Base.eltype(::AbstractMvNormal{T}) where T = T
 
 Base.length(d::AbstractMvNormal) = d |> μ |> length
 
-Base.:+(x::AbstractVec, d::T) where T <: AbstractMvNormal = T(x + μ(d), σ(d))
+Base.:+(x::AbstractVector, d::T) where T <: AbstractMvNormal = T(x + μ(d), σ(d))
 
 function Base.rand(d::AbstractMvNormal)
     N, T = length(d), eltype(d)

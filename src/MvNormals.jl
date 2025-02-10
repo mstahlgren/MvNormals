@@ -7,7 +7,7 @@ import LinearAlgebra: BLAS, Cholesky, LowerTriangular, Diagonal, cholesky, logde
 include("utilities.jl")
 
 include("abstractmvn.jl")
-export μ, σ, Σ, logpdf, δlogpdfδσ
+export μ, σ, Σ, logpdf, δlogpdfδσ, δlogpdfδμ
 
 include("mvn.jl")
 export MvNormal, test

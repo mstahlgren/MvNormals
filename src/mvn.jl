@@ -27,6 +27,12 @@ function δlogpdfδσ(d::MvNormal{T, M, S}, x, b) where {T, M, S <: Diagonal}
     return -0.5*(log(2π)*length(d) + 2*sum(log(σᵢ) for σᵢ in d.σ.diag) + AᵀA(b)), logpdf_pb
 end
 
+function δlogpdfδμ(d::MvNormal{T, M, S}, x, b) where {T, M, S <: Diagonal}
+    b .= (x .- d.μ) ./ d.σ.diag
+    logpdf_pb(Δy) = begin b .= Δy .* b ./ d.σ.diag; b end
+    return -0.5*(log(2π)*length(d) + 2*sum(log(σᵢ) for σᵢ in d.σ.diag) + AᵀA(b)), logpdf_pb
+end
+
 function ChainRulesCore.rrule(::typeof(logpdf), d::MvNormal{T, M, S}, x) where {T, M, S <: LowerTriangular}
     z, s, c = x - d.μ, log(2π)*length(d), Cholesky(d.σ.data, :L, 0)
     Σ⁻¹z = c\z; L⁻¹z = d.σ'*Σ⁻¹z

@@ -15,6 +15,6 @@ Base.rand(::IsoMvNormal{N, T}) where {N, T} = rand(SVector{N})
 logpdf(d::IsoMvNormal, x) = -0.5*(log(2π)*length(d) + x'x)
 
 function ChainRulesCore.rrule(::typeof(logpdf), d::IsoMvNormal, x)
-    mvn_pb(Δy) = (NoTangent(), NoTangent(), -Δy .* x)
+    mvn_pb(Δy) = (NoTangent(), NoTangent(), -Δy * x)
     return -0.5*(log(2π)*length(d) + x'x), mvn_pb
 end
